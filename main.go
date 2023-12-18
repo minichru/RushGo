@@ -1,10 +1,10 @@
 package main
 
 import (
-	examples "RushGo/examples"
+	examples "github.com/shelovesmox/rushgo/examples"
 )
 
 func main() {
-	examples.Get()
+	examples.CustomConfigExample()
 
 }

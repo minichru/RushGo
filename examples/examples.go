@@ -1,95 +1,134 @@
 package examples
 
 import (
-	rushgo "RushGo/RushGo"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
+
+
+	rushgo "github.com/shelovesmox/rushgo/rushgo"
 )
 
-func Get() {
-	resp, err := rushgo.Get("https://httpbin.org/get")
-
+// SimpleGETRequest demonstrates a simple GET request using RushGo
+func SimpleGETRequest() {
+	client := rushgo.New(nil) // Using default configuration
+	resp, err := client.Get("https://httpbin.org/get")
 	if err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Println("Error in GET request:", err)
+		return
 	}
-
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error", err)
+		fmt.Println("Error reading response body:", err)
+		return
 	}
 
-	fmt.Println(string(body))
+	fmt.Println("GET Response Body:", string(body))
 }
 
-func Post() {
-	data := "RushGo is the best"
-	resp, err := rushgo.Post("https://httpbin.org/post", []byte(data))
+// POSTRequestWithJSON demonstrates a POST request with a JSON body using RushGo
+func POSTRequestWithJSON() {
+	client := rushgo.New(nil) // Using default configuration
 
+	jsonData := map[string]string{"key": "value"}
+	jsonBody, _ := json.Marshal(jsonData)
+
+	resp, err := client.Post("https://httpbin.org/post", jsonBody)
 	if err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Println("Error in POST request:", err)
+		return
 	}
-
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Println("Error reading response body:", err)
+		return
 	}
 
-	fmt.Println(string(body))
+	fmt.Println("POST Response Body:", string(body))
 }
 
-func JsonPARSE() {
-	resp, err := rushgo.Get("https://httpbin.org/get")
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
+// DownloadImageExample demonstrates downloading an image using RushGo
+func DownloadImageExample() {
+	client := rushgo.New(nil) // Using default configuration
+	url := "https://httpbin.org/image/jpeg"
+	savePath := "downloaded_image.jpg" // Path to save the image
 
+	resp, err := client.DownloadImage(url, &savePath)
+	if err != nil {
+		fmt.Println("Error downloading image:", err)
+		return
+	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
-
-	fmt.Println(string(body))
-
-	data, err := rushgo.ParseJSON(body)
-	if err != nil {
-		fmt.Println("Error", err)
-	}
-
-	headers := data["headers"].(map[string]interface{})
-
-	fmt.Println("Host: ", headers["Host"])
+	fmt.Println("Image downloaded successfully. Status:", resp.Status)
 }
 
-func BodyContains() {
-	resp, err := rushgo.Get("https://httpbin.org/get")
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
+// CustomHeadersAndCookiesExample demonstrates setting custom headers and cookies
+func CustomHeadersAndCookiesExample() {
+	client := rushgo.New(nil).
+		WithHeaders(map[string]string{
+			"Custom-Header": "HeaderValue",
+		}).
+		WithCookies(map[string]string{
+			"session_token": "123456",
+		})
 
+	resp, err := client.Get("https://httpbin.org/headers")
+	if err != nil {
+		fmt.Println("Error in GET request with custom headers and cookies:", err)
+		return
+	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Println("Error reading response body:", err)
+		return
 	}
 
-	fmt.Println(string(body))
-
-	contains := rushgo.ResponseBodyContains(body, "User-Agent")
-
-	if contains {
-		fmt.Print("Found yay")
-		//do something
-	} else {
-		fmt.Println("Damn no find..")
-		//do something else
-	}
+	fmt.Println("Response with custom headers and cookies:", string(body))
 }
+
+// You can call these functions from another part of your application.
+
+func CustomUserAgentExample() {
+    client := rushgo.New(nil).WithUserAgent("MyCustomUserAgent/1.0")
+
+    resp, err := client.Get("https://httpbin.org/user-agent")
+    if err != nil {
+        fmt.Println("Error in GET request with custom User-Agent:", err)
+        return
+    }
+    defer resp.Body.Close()
+
+    body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        fmt.Println("Error reading response body:", err)
+        return
+    }
+
+    fmt.Println("Response with custom User-Agent:", string(body))
+}
+
+func CustomConfigExample() {
+    cfg := rushgo.Config{
+        EnableHTTP2: true, //change to false to use http.1.1
+    }
+    client := rushgo.New(&cfg)
+
+    resp, err := client.Get("https://httpbin.org") // This endpoint delays the response for 5 seconds
+    if err != nil {
+        fmt.Println("Error in GET request with custom configuration:", err)
+        return
+    }
+    defer resp.Body.Close()
+
+
+
+    fmt.Println("Response with custom configuration:", string(resp.Proto))
+}
+
