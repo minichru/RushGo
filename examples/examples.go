@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-
+	"strings"
 
 	rushgo "github.com/shelovesmox/rushgo/rushgo"
 )
@@ -116,11 +116,11 @@ func CustomUserAgentExample() {
 
 func CustomConfigExample() {
     cfg := rushgo.Config{
-        EnableHTTP2: true, //change to false to use http.1.1
+		EnableHTTP3: true, //change to false to use http.1.1
     }
     client := rushgo.New(&cfg)
 
-    resp, err := client.Get("https://httpbin.org") // This endpoint delays the response for 5 seconds
+    resp, err := client.Get("https://example.com")
     if err != nil {
         fmt.Println("Error in GET request with custom configuration:", err)
         return
@@ -132,3 +132,70 @@ func CustomConfigExample() {
     fmt.Println("Response with custom configuration:", string(resp.Proto))
 }
 
+
+func XmlParser () {
+	cfg := rushgo.Config{
+        EnableHTTP2: true, //change to false to use http.1.1
+    }
+    client := rushgo.New(&cfg)
+
+    resp, err := client.Get("https://httpbin.org/xml")
+	if err != nil {
+		
+	}
+
+	defer resp.Body.Close()
+
+	body := `
+	<note>
+	  <to>Tove</to>
+	  <from>Jani</from>
+	  <heading>Reminder</heading>
+	  <body>Don't forget me this weekend!</body>
+	</note>
+	`
+
+	xml, err := rushgo.ParseXML(strings.NewReader(body))
+	if err != nil {
+		fmt.Println("Error parsing XML:", err)
+		return
+	}
+
+
+	fmt.Println(xml["to"])
+}
+
+
+func ExtractBetween () {
+
+	cfg := rushgo.Config{
+		EnableHTTP2: true, //change to false to use http.1.1
+	}
+
+	client := rushgo.New(&cfg)
+
+	resp, err := client.Get("https://example.com")
+
+	if err != nil {
+		fmt.Println("Error in GET request:", err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	extractedTitle, err := rushgo.ExtractBetween(string(body), "This", "permission")
+
+	if err != nil {
+		fmt.Println("Error extracting title:", err)
+		return
+	}
+
+	fmt.Println(extractedTitle)
+}

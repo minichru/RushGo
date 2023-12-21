@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -35,11 +36,11 @@ func ParseCookies(resp *http.Response) map[string]string {
 
 
 // largely incomplete XML parser
-func ParseXML(data io.Reader) (map[string][]string, error) {
+func ParseXML(data io.Reader) (map[string]string, error) {
     decoder := xml.NewDecoder(data)
     decoder.CharsetReader = charset.NewReaderLabel // Set the CharsetReader
 
-    result := make(map[string][]string)
+    result := make(map[string]string)
     var currentElement string
     var currentText string
 
@@ -57,10 +58,14 @@ func ParseXML(data io.Reader) (map[string][]string, error) {
             currentElement = tok.Name.Local
             currentText = ""
         case xml.CharData:
-            currentText += string(tok)
+            currentText = strings.TrimSpace(currentText + string(tok))
         case xml.EndElement:
             if currentElement != "" {
-                result[currentElement] = append(result[currentElement], currentText)
+                if existing, exists := result[currentElement]; exists {
+                    result[currentElement] = existing + currentText
+                } else {
+                    result[currentElement] = currentText
+                }
                 currentElement = ""
             }
         }
@@ -71,11 +76,28 @@ func ParseXML(data io.Reader) (map[string][]string, error) {
 
 
 
-
-
-// GetString retrieves a string value from a JSON object by key
-
 // ResponseBodyContains checks if the response body contains a specific string
 func ResponseBodyContains(responseBody []byte, searchStr string) bool {
     return bytes.Contains(bytes.ToLower(responseBody), []byte(strings.ToLower(searchStr)))
 }
+
+
+func ExtractBetween(body, left, right string) (string, error) {
+    // Find the start index of the left delimiter
+    start := strings.Index(body, left)
+    if start == -1 {
+        return "", fmt.Errorf("left string %s not found", left)
+    }
+
+    // Find the end index of the right delimiter starting from the end of the left delimiter
+    end := strings.Index(body[start:], right)
+    if end == -1 {
+        return "", fmt.Errorf("right string %s not found", right)
+    }
+    // Adjust end to the actual index in `body`
+    end += start + len(right)
+
+    // Extract the target substring including the left and right delimiters
+    return body[start:end], nil
+}
+

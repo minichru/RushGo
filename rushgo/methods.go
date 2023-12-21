@@ -10,44 +10,54 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/quic-go/quic-go/http3"
 )
 
 // Config struct for RushGo client settings
 type Config struct {
-    EnableHTTP2 bool
-    Timeout     time.Duration
+	EnableHTTP2 bool
+	EnableHTTP3 bool
+	Timeout     time.Duration
 }
 
 // RushGo struct to encapsulate the http client and default headers
 type RushGo struct {
-    client         *http.Client
-    defaultHeaders map[string]string
-    userAgent      string // User-Agent header
+	client         *http.Client
+	defaultHeaders map[string]string
+	userAgent      string // User-Agent header
 }
 
 // New initializes a new RushGo instance with optional configuration
 func New(cfg *Config) *RushGo {
-    if cfg == nil {
-        cfg = &Config{
-            EnableHTTP2: true,
-            Timeout:     30 * time.Second,
-        }
-    }
+	if cfg == nil {
+		cfg = &Config{
+			EnableHTTP2: true,
+			EnableHTTP3: false, // Default to false for backward compatibility
+			Timeout:     30 * time.Second,
+		}
+	}
 
-    return &RushGo{
-        client: &http.Client{
-            Timeout: cfg.Timeout,
-            Transport: &http.Transport{
-                ForceAttemptHTTP2: cfg.EnableHTTP2,
-                
-            },
-        },
+	var transport http.RoundTripper
+	if cfg.EnableHTTP3 {
+		// Use http3.RoundTripper for HTTP/3 support
+		transport = &http3.RoundTripper{}
+	} else {
+		// Fallback to using http.Transport
+		transport = &http.Transport{
+			ForceAttemptHTTP2: cfg.EnableHTTP2,
+		}
+	}
 
-        defaultHeaders: make(map[string]string), // Initialize the map here
-    }
+	return &RushGo{
+		client: &http.Client{
+			Timeout:   cfg.Timeout,
+			Transport: transport,
+		},
+		defaultHeaders: make(map[string]string), // Initialize the map here
+	}
 }
 
-// WithTimeout sets a custom timeout for the RushGo client
 func (rg *RushGo) WithTimeout(timeout time.Duration) *RushGo {
     rg.client.Timeout = timeout
     return rg
@@ -82,6 +92,21 @@ func (rg *RushGo) Post(url string, body []byte) (*http.Response, error) {
     return rg.sendRequest("POST", url, body)
 }
 
+// Put makes a PUT request using the RushGo client
+func (rg *RushGo) Put(url string, body []byte) (*http.Response, error) {
+    return rg.sendRequest("PUT", url, body)
+}
+
+
+// Patch makes a PATCH request using the RushGo client
+func (rg *RushGo) Patch(url string, body []byte) (*http.Response, error) {
+    return rg.sendRequest("PATCH", url, body)
+}
+
+// Delete makes a DELETE request using the RushGo client
+func (rg *RushGo) Delete(url string) (*http.Response, error) {
+    return rg.sendRequest("DELETE", url, nil)
+}
 // sendRequest is a helper method to make HTTP requests
 func (rg *RushGo) sendRequest(method, url string, body []byte) (*http.Response, error) {
     req, err := http.NewRequest(method, url, bytes.NewBuffer(body))

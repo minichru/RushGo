@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	examples.CustomConfigExample()
+	examples.ExtractBetween()
 
 }
