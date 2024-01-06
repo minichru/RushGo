@@ -19,6 +19,7 @@ require (
 )
 
 require (
+	github.com/gorilla/websocket v1.5.1
 	github.com/quic-go/quic-go v0.40.1
 	golang.org/x/text v0.14.0 // indirect
 )

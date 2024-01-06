@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	examples.ExtractBetween()
+	examples.WebSocketExample()
 
 }

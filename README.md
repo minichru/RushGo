@@ -16,7 +16,7 @@ RushGo is a simple, yet effective HTTP client wrapper library designed to stream
 
 
 ### To-Do List / Future Directions
-- [ ] Implement additional HTTP methods (PUT, DELETE, PATCH, etc.).
+- [x] Implement additional HTTP methods (PUT, DELETE, PATCH, etc.).
 - [ ] Extend support for parsing different data formats (e.g., YAML, TOML).
 - [ ] Integrate advanced error handling and logging mechanisms.
 - [x] Add support for HTTP/3.

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
+    "github.com/gorilla/websocket"
 	"github.com/quic-go/quic-go/http3"
 )
 
@@ -160,6 +160,25 @@ func (rg *RushGo) WithUserAgent(userAgent string) *RushGo {
     return rg
 }
 
+
+func (rg *RushGo) WebSocketConnect(urlStr string) (*websocket.Conn, *http.Response, error) {
+    // You can customize the Dialer if you need to set timeouts or other settings
+    dialer := websocket.DefaultDialer
+
+    // Pass headers if needed
+    headers := http.Header{}
+    for key, value := range rg.defaultHeaders {
+        headers.Add(key, value)
+    }
+
+    // Connect to the WebSocket server
+    conn, resp, err := dialer.Dial(urlStr, headers)
+    if err != nil {
+        return nil, nil, err
+    }
+
+    return conn, resp, err
+}
 
 
 

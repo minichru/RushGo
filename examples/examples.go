@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"strings"
 
 	rushgo "github.com/shelovesmox/rushgo/rushgo"
@@ -198,4 +199,19 @@ func ExtractBetween () {
 	}
 
 	fmt.Println(extractedTitle)
+}
+
+func WebSocketExample () {
+
+	rgClient := rushgo.New(nil)
+
+    // Connect to the WebSocket server
+    wsURL := "wss://socketsbay.com/wss/v2/1/demo/"
+    conn, resp, err := rgClient.WebSocketConnect(wsURL)
+    if err != nil {
+        log.Fatalf("Error connecting to WebSocket: %v\n", err)
+    }
+    defer conn.Close()
+
+    fmt.Printf("Connected to WebSocket server. HTTP status code: %d\n", resp.StatusCode)
 }
