@@ -2,15 +2,18 @@ package rushgo
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
-    "github.com/gorilla/websocket"
+
+	"github.com/gorilla/websocket"
 	"github.com/quic-go/quic-go/http3"
 )
 
@@ -107,6 +110,41 @@ func (rg *RushGo) Patch(url string, body []byte) (*http.Response, error) {
 func (rg *RushGo) Delete(url string) (*http.Response, error) {
     return rg.sendRequest("DELETE", url, nil)
 }
+
+func (rg *RushGo) Head(url string) (*http.Response, error) {
+    return rg.sendRequest("HEAD", url, nil)
+}
+
+func (rg *RushGo) Options(url string) (*http.Response, error) {
+    return rg.sendRequest("OPTIONS", url, nil)
+}
+
+func (rg *RushGo) WithBasicAuth(username, password string) *RushGo {
+    rg.defaultHeaders["Authorization"] = "Basic " + base64.StdEncoding.EncodeToString([]byte(username+":"+password))
+    return rg
+}
+
+func (rg *RushGo) WithBearerToken(token string) *RushGo {
+    rg.defaultHeaders["Authorization"] = "Bearer " + token
+    return rg
+}
+
+func (rg *RushGo) FollowRedirects() *RushGo {
+    rg.client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+        return nil
+    }
+    return rg
+}
+
+func (rg *RushGo) WithProxy(proxyURL string) *RushGo {
+    if url, err := url.Parse(proxyURL); err == nil {
+        rg.client.Transport = &http.Transport{
+            Proxy: http.ProxyURL(url),
+        }
+    }
+    return rg
+}
+
 // sendRequest is a helper method to make HTTP requests
 func (rg *RushGo) sendRequest(method, url string, body []byte) (*http.Response, error) {
     req, err := http.NewRequest(method, url, bytes.NewBuffer(body))

@@ -142,7 +142,7 @@ func XmlParser () {
 
     resp, err := client.Get("https://httpbin.org/xml")
 	if err != nil {
-		
+		// Handle the error here.
 	}
 
 	defer resp.Body.Close()
@@ -163,7 +163,7 @@ func XmlParser () {
 	}
 
 
-	fmt.Println(xml["to"])
+	fmt.Println(xml["from"])
 }
 
 
@@ -214,4 +214,94 @@ func WebSocketExample () {
     defer conn.Close()
 
     fmt.Printf("Connected to WebSocket server. HTTP status code: %d\n", resp.StatusCode)
+}
+
+func HTTP3() {
+	cfg := rushgo.Config{
+		EnableHTTP3: true, //change to false to use http.1.1
+	}
+
+	client := rushgo.New(&cfg)
+
+	resp, err := client.Get("https://example.com")
+
+	if err != nil {
+		fmt.Println("Error in GET request:", err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	fmt.Println(string(body))
+
+	if resp.ProtoMajor == 3 {
+		fmt.Println("The request is using HTTP/3")
+	} else {
+		fmt.Println("The request is not using HTTP/3")
+	}
+}
+
+func DeleteExample() {
+	client := rushgo.New(nil)
+
+	resp, err := client.Delete("https://httpbin.org/delete")
+	if err != nil {
+		fmt.Println("Error in DELETE request:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	fmt.Println("DELETE Response Body:", string(body))
+}
+
+func WithBasicAuthExample() {
+	client := rushgo.New(nil).WithBasicAuth("username", "password")
+
+	resp, err := client.Get("https://httpbin.org/basic-auth/username/password")
+	if err != nil {
+		fmt.Println("Error in GET request with Basic Auth:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	fmt.Println("Response with Basic Auth:", string(body))
+}
+
+
+func WithBearerTokenExample() {
+	client := rushgo.New(nil).WithBearerToken("my-jwt-token")
+
+	resp, err := client.Get("https://httpbin.org/bearer")
+	if err != nil {
+		fmt.Println("Error in GET request with Bearer Token:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	fmt.Println("Response with Bearer Token:", string(body))
 }
