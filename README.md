@@ -22,9 +22,9 @@ RushGo is a simple, yet effective HTTP client wrapper library designed to stream
 - [x] Add support for HTTP/3.
 - [ ] Add support for proxies.
 - [ ] Add support for asynchronous requests.
-- [ ] Incorporate OAuth and other authentication protocols.
+- [#] Incorporate OAuth and other authentication protocols.
 - [ ] Integrate TLS support.
-- [ ] Add support for websockets.
+- [#] Add support for websockets.
 - [ ] Create comprehensive documentation and usage examples.
 
 ### Future Directions
